@@ -415,6 +415,7 @@ buttonpress(XEvent *e)
 			click = ClkWinTitle;
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
+		restack(selmon);
 		click = ClkClientWin;
 	}
 	for (i = 0; i < LENGTH(buttons); i++)
