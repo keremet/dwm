@@ -180,6 +180,7 @@ static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
+static void maximize_client(const Arg *arg);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
 static void pop(Client *);
@@ -997,6 +998,15 @@ keypress(XEvent *e)
 		&& CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
 		&& keys[i].func)
 			keys[i].func(&(keys[i].arg));
+}
+
+void
+maximize_client(const Arg *arg)
+{
+	if (!selmon->sel)
+		return;
+	
+	resize(selmon->sel, selmon->wx, selmon->wy, selmon->ww - 2 * selmon->sel->bw, selmon->wh - 26 - 2 * selmon->sel->bw, 0);
 }
 
 void
