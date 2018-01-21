@@ -29,16 +29,6 @@ static const Rule rules[] = {
 	{ "fbpanel",  NULL,       NULL,       0x1FF,       0,           -1 },
 };
 
-/* layout(s) */
-static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
-static const int nmaster     = 1;    /* number of clients in master area */
-static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
-
-static const Layout layouts[] = {
-	/* symbol     arrange function */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-};
-
 /* key definitions */
 #define MODKEY Mod4Mask /*Windows key*/
 #define TAGKEYS(KEY,TAG) \
@@ -83,7 +73,7 @@ static Key keys[] = {
 };
 
 /* button definitions */
-/* click can be ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
+/* click can be ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkWinTitle,          0,              Button3,        maximize_client,{0} },
