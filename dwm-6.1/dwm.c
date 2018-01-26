@@ -993,7 +993,7 @@ manage(Window w, XWindowAttributes *wa)
 {
        XClassHint ch = { NULL, NULL };
        XGetClassHint(dpy, w, &ch);
-       if ((strcmp(ch.res_class, "fbpanel") == 0) && (strcmp(ch.res_name, "panel") == 0))
+       if (ch.res_class && ch.res_name && (strcmp(ch.res_class, "fbpanel") == 0) && (strcmp(ch.res_name, "panel") == 0))
                return;
 
 	Client *c, *t = NULL;
