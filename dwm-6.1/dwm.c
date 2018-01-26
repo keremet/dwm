@@ -97,6 +97,7 @@ struct Client {
 	Client *snext;
 	Monitor *mon;
 	Window win;
+	int fancy_but_right;
 };
 
 typedef struct {
@@ -411,8 +412,18 @@ buttonpress(XEvent *e)
 			arg.ui = 1 << i;
 		} else if (ev->x > selmon->ww - TEXTW(stext))
 			click = ClkStatusText;
-		else
+		else {
 			click = ClkWinTitle;
+			for (Client *c = m->clients; c; c = c->next) {
+				if (!ISVISIBLE(c))
+					continue;
+				if (ev->x <= c->fancy_but_right) {
+					focus(c);
+					restack(selmon);					
+					break;
+				}
+			}
+		}
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack(selmon);
@@ -732,6 +743,7 @@ drawbar(Monitor *m)
 				drw_rect(drw, x + 1, 1, dx, dx, c->isfixed, c->isfloating, 0);
 
 				x += w;
+				c->fancy_but_right = x;
 				w = xx - x;
 			}
  		}
