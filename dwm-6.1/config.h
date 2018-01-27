@@ -43,6 +43,7 @@ static const Rule rules[] = {
 /* commands */
 static const char *termcmd[]  = { "gnome-terminal", NULL };
 static const char *lockcmd[]  = { "xscreensaver-command", "-lock", NULL };
+static const char *dwm_calendar[]  = { "dwm_calendar", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -77,6 +78,7 @@ static Key keys[] = {
 static Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkWinTitle,          0,              Button3,        maximize_client,{0} },
+	{ ClkStatusText,        0,              Button1,        spawn,          {.v = dwm_calendar } },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
 	{ ClkTagBar,            0,              Button1,        view,           {0} },
