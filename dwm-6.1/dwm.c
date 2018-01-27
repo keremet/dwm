@@ -40,6 +40,8 @@
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 #include <X11/Xft/Xft.h>
+#include <time.h>
+#include <sys/time.h>
 
 #include "drw.h"
 #include "util.h"
@@ -1344,15 +1346,42 @@ restack(Monitor *m)
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
 
+
+int
+XNextEventTimed(int fd, XEvent* event_return, struct timeval*tv) 
+{
+	if (XPending(dpy))
+		return XNextEvent(dpy, event_return);		
+
+	fd_set readset;
+	FD_ZERO(&readset);
+	FD_SET(fd, &readset);
+	if (select(fd+1, &readset, NULL, NULL, tv))
+		return XNextEvent(dpy, event_return);
+	return -1;
+}
+
 void
 run(void)
 {
 	XEvent ev;
 	/* main event loop */
 	XSync(dpy, False);
-	while (running && !XNextEvent(dpy, &ev))
+	int fd = ConnectionNumber(dpy);
+	struct timeval tv = { 3, 0 }; // fall through every idle 3 second
+	while (running) {
+		int r = XNextEventTimed(fd, &ev, &tv);
+		if (r > 0)
+			break;
+
+		if (r < 0) {
+			updatestatus();
+			continue;
+		}
+
 		if (handler[ev.type])
 			handler[ev.type](&ev); /* call handler */
+	}
 }
 
 void
@@ -1518,6 +1547,24 @@ setup(void)
 	/* init bars */
 	updatebars();
 	updatestatus();
+	/* Устанавливаем обработчик для сигнала таймера 
+	struct sigaction sa;
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = updatestatus_timer;
+	sigemptyset(&sa.sa_mask);
+	if (sigaction(SIGALRM, &sa, NULL) != -1){
+		 Создаём таймер *
+		timer_t timerid;
+		if (timer_create(CLOCK_REALTIME, NULL, &timerid) != -1){
+			 Запускаем таймер *
+			struct itimerspec its;
+			its.it_value.tv_sec = 1;
+			its.it_value.tv_nsec = 0;
+			its.it_interval.tv_sec = its.it_value.tv_sec;
+			its.it_interval.tv_nsec = its.it_value.tv_nsec;
+			timer_settime(timerid, 0, &its, NULL);
+		}
+	}*/
 	/* EWMH support per view */
 	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
 			PropModeReplace, (unsigned char *) netatom, NetLast);
@@ -1879,8 +1926,11 @@ updatetitle(Client *c)
 void
 updatestatus(void)
 {
-	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
-		strcpy(stext, "dwm-"VERSION);
+	time_t now;
+	time(&now); 
+	if (!strftime(stext, sizeof(stext), "%d.%m %H:%M", localtime(&now)))
+        	strcpy(stext, "  :  ");
+
 	drawbar(selmon);
 }
 
