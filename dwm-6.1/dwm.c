@@ -1122,7 +1122,7 @@ maximize_client(const Arg *arg)
 	if (!selmon->sel)
 		return;
 	
-	resize(selmon->sel, selmon->wx, selmon->wy, selmon->ww - 2 * selmon->sel->bw, selmon->wh - 26 - 2 * selmon->sel->bw, 0);
+	resize(selmon->sel, selmon->wx, selmon->wy, selmon->ww - 2 * selmon->sel->bw, selmon->wh - 2 * selmon->sel->bw, 0);
 }
 
 void
@@ -1144,11 +1144,6 @@ killclient(const Arg *arg)
 void
 manage(Window w, XWindowAttributes *wa)
 {
-       XClassHint ch = { NULL, NULL };
-       XGetClassHint(dpy, w, &ch);
-       if (ch.res_class && ch.res_name && (strcmp(ch.res_class, "fbpanel") == 0) && (strcmp(ch.res_name, "panel") == 0))
-               return;
-
 	Client *c, *t = NULL;
 	Window trans = None;
 	XWindowChanges wc;
