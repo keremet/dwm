@@ -79,7 +79,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeClose, SchemeLast }; /* color schemes */
 enum { NetSupported, NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation,
 	   NetWMName, NetWMState, NetWMFullscreen, NetActiveWindow, NetWMWindowType,
 	   NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
@@ -292,6 +292,8 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root;
+static int xX; //Начало кнопки закрытия
+static int xSText; //Начало текста статуса (времени)
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -452,7 +454,9 @@ buttonpress(XEvent *e)
 		if (i < LENGTH(tags)) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
-		} else if (ev->x > selmon->ww - TEXTW(stext))
+		} else if (ev->x > xX){ //без учета монитора
+			killclient(NULL);
+		} else if (ev->x > xSText)  //без учета монитора
 			click = ClkStatusText;
 		else {
 			click = ClkWinTitle;
@@ -797,19 +801,28 @@ drawbar(Monitor *m)
 	}
 	xx = x;
 	if (m == selmon) { /* status is only drawn on selected monitor */
-		w = TEXTW(stext);
-		x = m->ww - w;
+		int wX = TEXTW("X");
+		drw_setscheme(drw, &scheme[(n>0)?SchemeClose:SchemeNorm]);
+		xX = m->ww - wX;
 		if (showsystray && m == systraytomon(m)) {
-			x -= getsystraywidth();
+			xX -= getsystraywidth();
 		}
-		if (x < xx) {
-			x = xx;
-			w = m->ww - xx;
+		drw_text(drw, xX, 0, wX, bh, "X", 0);
+
+		int wSText = TEXTW(stext);
+		xSText = m->ww - wSText - wX;
+		if (showsystray && m == systraytomon(m)) {
+			xSText -= getsystraywidth();
 		}
-		drw_text(drw, x, 0, w, bh, stext, 0);
+		if (xSText < xx) {
+			xSText = xx;
+			wSText = m->ww - xx;
+		}
+		drw_setscheme(drw, &scheme[SchemeNorm]);
+		drw_text(drw, xSText, 0, wSText, bh, stext, 0);
 	} else
-		x = m->ww;
-	if ((w = x - xx) > bh) {
+		xSText = m->ww;
+	if ((w = xSText - xx) > bh) {
 		x = xx;
 		if (n > 0) {
 			if (all_fancy_but_width_req <= w){ //Все кнопки помещаются в полную ширину
@@ -1731,6 +1744,9 @@ setup(void)
 	scheme[SchemeSel].border = drw_clr_create(drw, selbordercolor);
 	scheme[SchemeSel].bg = drw_clr_create(drw, selbgcolor);
 	scheme[SchemeSel].fg = drw_clr_create(drw, selfgcolor);
+	scheme[SchemeClose].border = drw_clr_create(drw, closebordercolor);
+	scheme[SchemeClose].bg = drw_clr_create(drw, closebgcolor);
+	scheme[SchemeClose].fg = drw_clr_create(drw, closefgcolor);
 	/* init system tray */
 	updatesystray();
 	/* init bars */
