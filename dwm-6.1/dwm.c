@@ -119,6 +119,8 @@ struct Client {
 	Monitor *mon;
 	Window win;
 	int fancy_but_right;
+	int fancy_but_width_req;
+	int fancy_but_width_fact;
 };
 
 typedef struct {
@@ -768,22 +770,24 @@ dirtomon(int dir)
 void
 drawbar(Monitor *m)
 {
-	int x, xx, w, dx, tw, mw;
-	unsigned int i, occ = 0, urg = 0, n = 0, extra = 0;
-	Client *c;
+	int x, xx, w, dx;
+	unsigned int occ = 0, urg = 0, n = 0, all_fancy_but_width_req = 0;
 
 	dx = (drw->fonts[0]->ascent + drw->fonts[0]->descent + 2) / 4;
 
 	resizebarwin(m);
-	for (c = m->clients; c; c = c->next) {
-		if (ISVISIBLE(c))
-			n++;
+	for (Client *c = m->clients; c; c = c->next) {
+		if (ISVISIBLE(c)){
+			n++;			
+			all_fancy_but_width_req += (c->fancy_but_width_req = TEXTW(c->name));
+			c->fancy_but_width_fact = 0;
+		}
 		occ |= c->tags;
 		if (c->isurgent)
 			urg |= c->tags;
 	}
 	x = 0;
-	for (i = 0; i < LENGTH(tags); i++) {
+	for (int i = 0; i < LENGTH(tags); i++) {
 		w = TEXTW(tags[i]);
 		drw_setscheme(drw, m->tagset[m->seltags] & 1 << i ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
 		drw_text(drw, x, 0, w, bh, tags[i], urg & 1 << i);
@@ -808,28 +812,41 @@ drawbar(Monitor *m)
 	if ((w = x - xx) > bh) {
 		x = xx;
 		if (n > 0) {
-			tw = m->sel->name ? TEXTW(m->sel->name) : 0;
-			mw = (tw >= w || n == 1) ? 0 : (w - tw) / (n - 1);
-
-			i = 0;
-			for (c = m->clients; c; c = c->next) {
-				if (!ISVISIBLE(c) || c == m->sel)
-					continue;
-				tw = TEXTW(c->name);
-				if(tw < mw)
-					extra += (mw - tw);
-				else
-					i++;
+			if (all_fancy_but_width_req <= w){ //Все кнопки помещаются в полную ширину
+				for (Client *c = m->clients; c; c = c->next) {
+					if (ISVISIBLE(c)){
+						c->fancy_but_width_fact = c->fancy_but_width_req;
+					}
+				}	
+			}else{ //Требуется укорачивание кнопок
+				int rest_width = w;
+				do{
+					int avr_width = rest_width/n;
+					int f = 0;
+					for (Client *c = m->clients; c; c = c->next) {
+						if (ISVISIBLE(c) 
+							&& (c->fancy_but_width_fact == 0)
+							&& (c->fancy_but_width_req < avr_width)
+						){
+							rest_width -= (c->fancy_but_width_fact = c->fancy_but_width_req);
+							n--;
+							f = 1;
+						}
+					}
+					if(!f){
+						for (Client *c = m->clients; c; c = c->next)
+							if (ISVISIBLE(c) && (c->fancy_but_width_fact == 0))
+								c->fancy_but_width_fact = avr_width;
+						break;
+					}
+				}while(n > 0);
 			}
-			if (i > 0)
-				mw += extra / i;
 
-			for (c = m->clients; c; c = c->next) {
+			for (Client *c = m->clients; c; c = c->next) {
 				if (!ISVISIBLE(c))
 					continue;
 				xx = x + w;
-				tw = TEXTW(c->name);
-				w = MIN(m->sel == c ? w : mw, tw);
+				w = c->fancy_but_width_fact;
 
 				drw_setscheme(drw, m->sel == c ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
 				drw_text(drw, x, 0, w, bh, c->name, 0);
