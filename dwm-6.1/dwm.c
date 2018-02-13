@@ -1810,18 +1810,24 @@ sigchld(int unused)
 	while (0 < waitpid(-1, NULL, WNOHANG));
 }
 
-void
-spawn(const Arg *arg)
+static void
+spawn2(char **v)
 {
 	if (fork() == 0) {
 		if (dpy)
 			close(ConnectionNumber(dpy));
 		setsid();
-		execvp(((char **)arg->v)[0], (char **)arg->v);
-		fprintf(stderr, "dwm: execvp %s", ((char **)arg->v)[0]);
+		execvp(v[0], v);
+		fprintf(stderr, "dwm: execvp %s", v[0]);
 		perror(" failed");
 		exit(EXIT_SUCCESS);
 	}
+}
+
+void
+spawn(const Arg *arg)
+{
+	spawn2((char **)arg->v);
 }
 
 Monitor *
@@ -2407,6 +2413,16 @@ xerrorstart(Display *dpy, XErrorEvent *ee)
 	return -1;
 }
 
+static void
+run_apps()
+{
+	if (fork() == 0) {
+		for(int i = 0; i < LENGTH(RUN_APPS); i++ )
+			spawn2(RUN_APPS[i]);
+		exit(0);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -2421,6 +2437,7 @@ main(int argc, char *argv[])
 	checkotherwm();
 	setup();
 	scan();
+	run_apps();
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
