@@ -20,7 +20,7 @@ static void trayIconActivated(GObject *trayIcon, gpointer popUpMenu)
 
 struct MENU_MODEL{
 	const char* name;
-	const char* command[2];
+	const char* command[3];
 	struct MENU_MODEL* mm;
 };
 
@@ -30,9 +30,17 @@ static struct MENU_MODEL MM_PROGRAMMING[] = {
 };
 
 static struct MENU_MODEL MM_MAIN_LEFT[] = {
+	{"Firefox", {"firefox", 0}},
 	{"GEdit", {"gedit", 0}},
+	{"GIMP", {"gimp", 0}},
+	{"Gnome commander", {"gnome-commander", 0}},
+	{"Gnome terminal (Win+Enter)", {"gnome-terminal", 0}},
+	{"Pidgin", {"pidgin", 0}},
+	{"LibreOffice4.4", {"libreoffice4.4", 0}},
 	{"xterm", {"xterm", 0}},
 	{"Программирование", {0}, MM_PROGRAMMING},
+	{"Регулятор громкости", {"gnome-volume-control", 0}},
+	{"Заблокировать экран (Win+L)", { "xscreensaver-command", "-lock", 0 }},
 	{0},
 };
 
