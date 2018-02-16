@@ -1,6 +1,8 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 static void run_command(GtkMenuItem *item, char** command)
 {
@@ -60,6 +62,13 @@ static GtkWidget *createMenu(struct MENU_MODEL *MM)
 	return menu;
 }
 
+static void sigchld(int unused) // можно сделать через sigaction SA_NOCLDWAIT
+{
+	if (signal(SIGCHLD, sigchld) == SIG_ERR)
+		fprintf(stderr, "can't install SIGCHLD handler");
+	while (0 < waitpid(-1, NULL, WNOHANG));
+}
+
 int main(int argc, char *argv[])
 {
 	gtk_init (&argc, &argv);
@@ -68,6 +77,8 @@ int main(int argc, char *argv[])
 	gtk_status_icon_set_tooltip (trayIcon, "Запуск программ");
 	g_signal_connect(GTK_STATUS_ICON (trayIcon), "activate", GTK_SIGNAL_FUNC (trayIconActivated), (gpointer)createMenu(MM_MAIN_LEFT));
 	gtk_status_icon_set_visible(trayIcon, TRUE);
+
+	sigchld(0);
 
 	gtk_main ();
 	return 0;
