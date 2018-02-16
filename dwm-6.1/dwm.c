@@ -2437,6 +2437,7 @@ main(int argc, char *argv[])
 	checkotherwm();
 	setup();
 	scan();
+	setenv("GTK2_RC_FILES", "/usr/share/themes/nimbus/gtk-2.0/gtkrc", 0);
 	run_apps();
 	run();
 	cleanup();
