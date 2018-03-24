@@ -4,6 +4,33 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+static int dlg(const char *msg)
+{
+	GtkWidget *dialog = gtk_message_dialog_new (0,
+		                         GTK_DIALOG_MODAL,
+		                         GTK_MESSAGE_QUESTION,
+		                         GTK_BUTTONS_YES_NO,
+		                         msg);
+	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER_ALWAYS);
+	int r = (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_YES);
+	gtk_widget_destroy (dialog);
+	return r;
+}
+
+static void poweroff()
+{
+	if (dlg("Выключить компьютер?")) {
+		execlp("/usr/bin/sudo", "sudo", "poweroff", 0);
+	}
+}
+
+static void reboot()
+{
+	if (dlg("Перезагрузить компьютер?")) {
+		execlp("/usr/bin/sudo", "sudo", "reboot", 0);
+	}
+}
+
 static void run_command(GtkMenuItem *item, char** command)
 {
 	if (fork() == 0) {
@@ -22,7 +49,7 @@ static void trayIconActivated(GObject *trayIcon, gpointer popUpMenu)
 
 struct MENU_MODEL{
 	const char* name;
-	const char* command[3];
+	const char* command[4];
 	struct MENU_MODEL* mm;
 };
 
@@ -42,7 +69,11 @@ static struct MENU_MODEL MM_MAIN_LEFT[] = {
 	{"xterm", {"xterm", 0}},
 	{"Программирование", {0}, MM_PROGRAMMING},
 	{"Регулятор громкости", {"gnome-volume-control", 0}},
+	{"openvpn и asterisk", {"xterm", "-e", "sudo /data/openvpn/openvpn.sh", 0}},
+	{"ekiga", {"sh", "-c", "ekiga --local-ip=`ifconfig tun0|tail -n 1|awk '{print $2}'`", 0}},
+	{"Доступ к рабочему столу", {"vino-preferences", 0}},
 	{"Заблокировать экран (Win+L)", { "xscreensaver-command", "-lock", 0 }},
+	{"Снимок экрана", { "gnome-screenshot", "--interactive", 0 }},
 	{0},
 };
 
@@ -58,6 +89,17 @@ static GtkWidget *createMenu(struct MENU_MODEL *MM)
 		}
 		gtk_menu_shell_append (GTK_MENU_SHELL (menu), mi);
 	}
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu), gtk_separator_menu_item_new ());
+
+	GtkWidget *mi;
+	mi = gtk_menu_item_new_with_label ("Выключение");
+	g_signal_connect (G_OBJECT (mi), "activate", G_CALLBACK (poweroff), 0);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu), mi);
+
+	mi = gtk_menu_item_new_with_label ("Перезагрузка");
+	g_signal_connect (G_OBJECT (mi), "activate", G_CALLBACK (reboot), 0);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu), mi);
+
 	gtk_widget_show_all (menu);
 	return menu;
 }
