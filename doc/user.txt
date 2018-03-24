@@ -6,14 +6,15 @@
 Изменение размеров окна: Windows + правая кнопка мыши
 Окно во весь экран: Windows + M или правой кнопкой по заголовку окна
 Переключение между окнами: Alt + Tab, в обратном направлении Alt + Shift + Tab
-Смена включенного тега - Windows+[1..9]
+Смена включенного тега - Windows+[1..3]
 Включение всех тегов - Windows + 0
-Смена тега окна - Windows + Shift + [1..9]
+Смена тега окна - Windows + Shift + [1..3]
 Сделать окно активным во всех тегах - Windows + Shift + 0
-Включение/выключение тега - Windows + Ctrl + [1..9]
+Включение/выключение тега - Windows + Ctrl + [1..3]
 Календарь - при щелчке по времени. Закрытие календаря: Alt + F4 или Esc
 Запуск программ: из меню по звезочке, Windows + Enter - gnome-terminal
 Выход в консоль: Windows + Q
+Снимок экрана: клавиша PrintScreen - без параметров или пункт меню "Снимок экрана" - с параметрами.
 
 How to use: https://dwm.suckless.org/tutorial/
 https://habrahabr.ru/post/136533/
@@ -27,12 +28,6 @@ sudo passwd dwm
 sudo cp ~/.bashrc ~/.profile /export/home/dwm
 sudo touch /export/home/dwm/.xinitrc
 $ cat /export/home/dwm/.xinitrc
-setxkbmap -layout "us,ru"
-setxkbmap -option "grp:ctrl_shift_toggle"
-pulseaudio &
-gnome-power-manager &
-/usr/local/dwm/bin/fbpanel &
-xscreensaver & 
 exec /usr/bin/dwm
 $ 
 
@@ -40,23 +35,6 @@ sudo chown -R dwm /export/home/dwm
 
 Можно посмотреть патчи на DWM
 
+Чтобы нормально срабатывали перезагрузка и выключение из меню, требуется в /etc/sudoers прописать
+keremet2 ALL=(root)NOPASSWD:/usr/sbin/poweroff,/usr/sbin/reboot
 
-#####Компиляция панели
-curl -L http://sourceforge.net/projects/fbpanel/files/fbpanel/6.1/fbpanel-6.1.tbz2/download > fbpanel-6.1.tbz2
-tar xf fbpanel-6.1.tbz2 
-cd fbpanel-6.1
-
-sudo pkg install pkg:/system/header/header-audio
-tar xf fbpanel-6.1.tbz2
-cd fbpanel-6.1
-sed -i -e 's/ battery$/ /g' plugins/Makefile.in
-sed -i -e '15 i\
-#include <sys/audio/audio_oss.h>' plugins/volume/volume.c
-sed -i -e 's/^install /ginstall /g' scripts/install.sh
-
-./configure --prefix=/usr/local/dwm
-CC=gcc make -j2
-sudo make install
-
-/usr/local/dwm/bin/fbpanel
-dwm@cr161118:/export/home/dwm$ vi ~/.config/fbpanel/default

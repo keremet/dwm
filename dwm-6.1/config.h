@@ -49,12 +49,14 @@ static const Rule rules[] = {
 /* commands */
 static const char *termcmd[]  = { "gnome-terminal", NULL };
 static const char *lockcmd[]  = { "xscreensaver-command", "-lock", NULL };
+static const char *print_screen_cmd[]  = { "gnome-screenshot", NULL };
 static const char *dwm_calendar[]  = { "dwm_calendar", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,			XK_l,      spawn,	   {.v = lockcmd } },
+	{ 0,				XK_Print,  spawn,	   {.v = print_screen_cmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ Mod1Mask /*Alt*/,             XK_Tab,    focusstack,     {.i = +1 } },
 	{ Mod1Mask|ShiftMask,           XK_Tab,    focusstack,     {.i = -1 } },
@@ -71,11 +73,6 @@ static Key keys[] = {
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
 	TAGKEYS(                        XK_4,                      3)
-	TAGKEYS(                        XK_5,                      4)
-	TAGKEYS(                        XK_6,                      5)
-	TAGKEYS(                        XK_7,                      6)
-	TAGKEYS(                        XK_8,                      7)
-	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY,	                XK_q,      quit,           {0} },
 };
 
